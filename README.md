@@ -1,12 +1,9 @@
-========================================================================
+
                        ASLEEP SCANNER (MODIFIED)
-========================================================================
 
 [![Python](https://img.shields.io/badge/Python-3.6%2B-blue?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Version](https://img.shields.io/badge/Version-0.1_Beta-purple?style=for-the-badge)](https://github.com/)
 [![Telegram](https://img.shields.io/badge/Telegram-@SniffCam-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/SniffCam)
-
-Telegram: @SniffCam (https://t.me/SniffCam)
 
 Установка и запуск
 ------------------------------------------------------------------------
