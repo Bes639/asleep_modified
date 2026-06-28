@@ -6,7 +6,7 @@ from datetime import datetime
 
 import pytz
 import requests
-from countrycode import countrycode
+import countrycode
 from geoip import geolite2
 
 import config
@@ -35,9 +35,10 @@ class GeolocationToIp():
     def get_cidr_count(cidr_range):
         return 2**(32-int(GeolocationToIp.get_cidr(cidr_range)))
 
+
 class IPDenyGeolocationToIP(GeolocationToIp):
     def get_ranges(self):
-        code = countrycode.countrycode(codes=[self.country], origin='country_name', target='iso2c')[0]
+        code = countrycode.countrycode(self.country, 'country.name', 'iso2c')
         resp = requests.get('http://www.ipdeny.com/ipblocks/data/aggregated/{}-aggregated.zone'.format(code.lower()))
         if 'title' in resp.text:
             self.ranges = []
@@ -57,19 +58,21 @@ class IPDenyGeolocationToIP(GeolocationToIp):
                     continue
                 rcidr = r.split('/')[1]
                 count1 = 2**(32-int(rcidr))
-                if ips+count1 < max_ips+(max_ips/10):
+
+                if ips + count1 < max_ips + (max_ips / 10):
                      tries -= 1
                 else:
                      break
+
                 if r not in rranges and not day_ranges:
                     rranges.append(r)
                     ips += count1
-#                    config.max_ips += ips
                     if kill_loop > 1000:
                          break
-                    elif ips < max_ips+(max_ips/10) and tries == 1:
+                    elif ips < max_ips + (max_ips / 10) and tries == 1:
                        tries += 2
                        kill_loop += 1
+
                 elif r not in rranges and day_ranges:
                      check = ipaddress.ip_network(r)
                      r_ip = random.randrange(1, 200)
@@ -85,21 +88,28 @@ class IPDenyGeolocationToIP(GeolocationToIp):
                      except Exception as e:
                          logging.debug(e)
                          continue
+
                      time_pm = datetime.now(time_src)
                      check_done = time_pm.strftime("%H")
                      pm_0 = range(9)
                      pm_1 = ["{:02d}".format(i) for i in pm_0]
-                     pm_1 += ["17","18","19","20","21","22","23"]
+                     pm_1 += ["17", "18", "19", "20", "21", "22", "23"]
+
                      if [time for time in pm_1 if time in check_done]:
                         continue
                      else:
                         rranges.append(r)
                         ips += count1
-                        config.max_ips += ips
-#                     elif not rranges and tries == 1:
-#                         tries += 1
-                     if rranges:
-                        config.random_countries.append(self.country)
+                        config.max_ips += count1
+
+                     if kill_loop > 1000:
+                         break
+                     elif ips < max_ips + (max_ips / 10) and tries == 1:
+                        tries += 2
+                        kill_loop += 1
+
+            if rranges and (self.country not in config.random_countries):
+                config.random_countries.append(self.country)
 
         else:
             rranges = [random.choice(self.ranges)]
