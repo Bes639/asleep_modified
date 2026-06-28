@@ -15,7 +15,7 @@ total = 0
 state = 0.0
 
 global_country = ''
-global_ports = ["37777"]
+global_ports = ["37777, 37778, 47777, 8080"]
 
 tmp_masscan_file = 'res_scan.txt'
 logins_file = 'logins.txt'
@@ -32,22 +32,39 @@ reports_folder = "reports"
 masscan_windows_path = 'masscan.exe'
 masscan_nix_path = 'masscan'
 
-# WRITE HERE MASSCAN ARGUMENTS
+# --- НАСТРОЙКА ИНТЕРФЕЙСА ---
+# Если ты хочешь автоматический запуск без вопросов:
+# Оставь пустую строку '', если сканируешь через дефолтную сеть.
+# Или укажи имя интерфейса, например 'tun0' или 'wg0', если используешь VPN.
+DEFAULT_INTERFACE = ''
+
+# Флаг автоматического режима (True — не спрашивать интерфейс, False — спрашивать как обычно)
+AUTO_MODE = True
+
 
 def additional_masscan_params():
-	masscan_params = '--randomize-hosts -sS' # add interface here to avoid manual input
-	if "-e" in masscan_params:
-		return masscan_params
-	else:
-		tunnel = input('''\nPlease enter your VPN Tunnel interface
-[WARNING] Add interface to config.py to avoid manual input\n\nLeave empty if none: ''')
-	if tunnel:
-		full_masscan_params = masscan_params + f' -e {tunnel}'
-		return full_masscan_params
-	else:
-		return masscan_params
+    masscan_params = '--randomize-hosts -sS'
 
-# Ускорение / Perfomance
+    # Если в аргументах уже есть "-e", просто возвращаем их
+    if "-e" in masscan_params:
+        return masscan_params
+
+    # Если включен автоматический режим, берем значение из DEFAULT_INTERFACE без инпута
+    if AUTO_MODE:
+        if DEFAULT_INTERFACE:
+            return masscan_params + f' -e {DEFAULT_INTERFACE}'
+        return masscan_params
+
+    # Интерактивный режим (если AUTO_MODE = False)
+    tunnel = input('''\nPlease enter your VPN Tunnel interface
+[WARNING] Add interface to config.py to avoid manual input\n\nLeave empty if none: ''')
+
+    if tunnel:
+        return masscan_params + f' -e {tunnel}'
+    return masscan_params
+
+
+# Ускорение / Performance
 # SPECIFY HERE SPEED/QUALITY OF SCAN AND BRUTE
 default_masscan_threads = 3000
 default_brute_threads = 160
@@ -61,9 +78,10 @@ start_datetime = time.strftime("%Y.%m.%d-%H.%M.%S")
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)s] %(message)s')
 logging.getLogger("requests").setLevel(logging.INFO)
 
+
 def update_status():
-	global index
-	global total
-	global state
-	index += 1
-	state = round(10*(index/total), 2)
+    global index
+    global total
+    global state
+    index += 1
+    state = round(10*(index/total), 2)
