@@ -9,7 +9,7 @@
 ------------------------------------------------------------------------
 1. Клонируйте репозиторий:
    ```bash
-   https://github.com/Bes639/asleep_modified.git
+   git clone https://github.com/Bes639/asleep_modified.git
    cd asleep_modified
    ```
 2. Установка зависимости:
